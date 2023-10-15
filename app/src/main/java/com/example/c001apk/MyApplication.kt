@@ -1,6 +1,8 @@
 package com.example.c001apk
 
+import android.annotation.SuppressLint
 import android.app.Application
+import android.content.Context
 import com.example.c001apk.util.CookieUtil
 import com.example.c001apk.util.TokenDeviceUtils
 import com.example.c001apk.util.TokenDeviceUtils.Companion.getTokenV2
@@ -14,10 +16,17 @@ class MyApplication : Application() {
     override fun onCreate() {
         super.onCreate()
 
+        context = applicationContext
+
         genData()
         requestData()
 
         DynamicColors.applyToActivitiesIfAvailable(this)
+    }
+
+    companion object {
+        @SuppressLint("StaticFieldLeak")
+        lateinit var context: Context
     }
 
     private fun genData() {
