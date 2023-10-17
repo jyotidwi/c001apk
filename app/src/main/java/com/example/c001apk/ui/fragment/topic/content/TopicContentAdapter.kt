@@ -20,7 +20,7 @@ import com.example.c001apk.logic.model.HomeFeedResponse
 import com.example.c001apk.ui.activity.feed.FeedActivity
 import com.example.c001apk.ui.activity.topic.TopicActivity
 import com.example.c001apk.ui.fragment.home.feed.FeedPicAdapter
-import com.example.c001apk.ui.fragment.search.result.SearchTopicAdapter
+import com.example.c001apk.util.CountUtil
 import com.example.c001apk.util.EmojiUtil
 import com.example.c001apk.util.ImageShowUtil
 import com.example.c001apk.util.PubDateUtil
@@ -50,6 +50,8 @@ class TopicContentAdapter(
         val hotNum: TextView = view.findViewById(R.id.hotNum)
         val commentNum: TextView = view.findViewById(R.id.commentNum)
         val logo: ShapeableImageView = view.findViewById(R.id.logo)
+        var entityType = ""
+        var aliasTitle = ""
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
@@ -75,7 +77,12 @@ class TopicContentAdapter(
                 val viewHolder = TopicViewHolder(view)
                 viewHolder.itemView.setOnClickListener {
                     val intent = Intent(parent.context, TopicActivity::class.java)
-                    intent.putExtra("title", viewHolder.title.text)
+                    intent.putExtra(
+                        "title",
+                        if (viewHolder.entityType == "product")
+                            viewHolder.aliasTitle
+                        else viewHolder.title.text
+                    )
                     parent.context.startActivity(intent)
                 }
                 return viewHolder
@@ -95,8 +102,8 @@ class TopicContentAdapter(
 
     @SuppressLint("UseCompatLoadingForDrawables", "SetTextI18n")
     override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
-        when(holder){
-            is ViewHolder ->{
+        when (holder) {
+            is ViewHolder -> {
                 val feed = searchList[position]
                 holder.id = feed.id
                 holder.uname.text = feed.username
@@ -170,12 +177,17 @@ class TopicContentAdapter(
                 } else holder.recyclerView.visibility = View.GONE
             }
 
-            is TopicViewHolder ->{
+            is TopicViewHolder -> {
                 val topic = searchList[position]
                 holder.title.text = topic.title
-                holder.hotNum.text = topic.hotNum + "热度"
-                holder.commentNum.text = topic.commentnum + "讨论"
+                holder.hotNum.text = CountUtil.view(topic.hotNum) + "热度"
+                holder.commentNum.text =
+                    if (topic.entityType == "topic") CountUtil.view(topic.commentnum) + "讨论"
+                    else CountUtil.view(topic.feedCommentNum) + "讨论"
                 ImageShowUtil.showIMG(holder.logo, topic.logo)
+                if (topic.entityType == "product")
+                    holder.aliasTitle = topic.aliasTitle
+                holder.entityType = topic.entityType
             }
         }
 

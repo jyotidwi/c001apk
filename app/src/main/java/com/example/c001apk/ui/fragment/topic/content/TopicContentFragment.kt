@@ -12,20 +12,20 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.c001apk.R
 import com.example.c001apk.databinding.FragmentTopicContentBinding
-import com.example.c001apk.ui.fragment.search.result.SearchFeedAdapter
+import com.example.c001apk.ui.fragment.home.topic.content.HomeTopicContentViewModel
 import com.example.c001apk.util.LinearItemDecoration
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
-private const val ARG_PARAM1 = "param1"
-private const val ARG_PARAM2 = "param2"
+private const val URL = "url"
+private const val TITLE = "title"
 
 class TopicContentFragment : Fragment() {
 
     private lateinit var binding: FragmentTopicContentBinding
-    private val viewModel by lazy { ViewModelProvider(this)[TopicContentViewModel::class.java] }
-    private lateinit var param1: String
-    private lateinit var param2: String
+    private val viewModel by lazy { ViewModelProvider(this)[HomeTopicContentViewModel::class.java] }
+    private lateinit var url: String
+    private lateinit var title: String
     private lateinit var mAdapter: TopicContentAdapter
     private lateinit var mLayoutManager: LinearLayoutManager
     private var firstCompletelyVisibleItemPosition = 0
@@ -34,8 +34,8 @@ class TopicContentFragment : Fragment() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         arguments?.let {
-            param1 = it.getString(ARG_PARAM1)!!
-            param2 = it.getString(ARG_PARAM2)!!
+            url = it.getString(URL)!!
+            title = it.getString(TITLE)!!
         }
     }
 
@@ -44,8 +44,8 @@ class TopicContentFragment : Fragment() {
         fun newInstance(param1: String, param2: String) =
             TopicContentFragment().apply {
                 arguments = Bundle().apply {
-                    putString(ARG_PARAM1, param1)
-                    putString(ARG_PARAM2, param2)
+                    putString(URL, param1)
+                    putString(TITLE, param2)
                 }
             }
     }
@@ -74,7 +74,7 @@ class TopicContentFragment : Fragment() {
                     viewModel.topicDataList.clear()
                 if (viewModel.isRefreshing || viewModel.isLoadMore)
                     for (element in data) {
-                        if (element.entityTemplate == "feed" || element.entityType == "topic")
+                        if (element.entityTemplate == "feed" || element.entityType == "topic" || element.entityType == "product")
                             viewModel.topicDataList.add(element)
                     }
                 mAdapter.notifyDataSetChanged()
@@ -152,8 +152,8 @@ class TopicContentFragment : Fragment() {
         viewModel.isEnd = false
         viewModel.isRefreshing = true
         viewModel.isLoadMore = false
-        viewModel.url = param1
-        viewModel.title = param2
+        viewModel.url = url
+        viewModel.title = title
         lifecycleScope.launch {
             delay(500)
             viewModel.getTopicData()
