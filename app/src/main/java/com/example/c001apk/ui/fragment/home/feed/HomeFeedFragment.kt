@@ -15,6 +15,7 @@ import cc.shinichi.library.ImagePreview
 import cc.shinichi.library.bean.ImageInfo
 import com.example.c001apk.R
 import com.example.c001apk.databinding.FragmentHomeFeedBinding
+import com.example.c001apk.ui.fragment.home.HomeFragment
 import com.example.c001apk.ui.fragment.minterface.IOnBottomClickContainer
 import com.example.c001apk.ui.fragment.minterface.IOnBottomClickListener
 import com.example.c001apk.ui.fragment.minterface.IOnFeedPicClickContainer
@@ -146,11 +147,13 @@ class HomeFeedFragment : Fragment(), IOnBottomClickListener, IOnFeedPicClickList
     }
 
     override fun onReturnTop() {
-        if (firstCompletelyVisibleItemPosition == 0)
-            refreshData()
-        else {
-            binding.recyclerView.scrollToPosition(0)
-            refreshData()
+        if (HomeFragment.current == 1){
+            if (firstCompletelyVisibleItemPosition == 0)
+                refreshData()
+            else {
+                binding.recyclerView.scrollToPosition(0)
+                refreshData()
+            }
         }
     }
 
