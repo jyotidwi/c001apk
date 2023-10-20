@@ -3,7 +3,9 @@ package com.example.c001apk
 import android.annotation.SuppressLint
 import android.app.Application
 import android.content.Context
+import androidx.appcompat.app.AppCompatDelegate
 import com.example.c001apk.util.CookieUtil
+import com.example.c001apk.util.PrefManager
 import com.example.c001apk.util.TokenDeviceUtils
 import com.example.c001apk.util.TokenDeviceUtils.Companion.getTokenV2
 import com.google.android.material.color.DynamicColors
@@ -20,8 +22,8 @@ class MyApplication : Application() {
 
         genData()
         requestData()
-
-        DynamicColors.applyToActivitiesIfAvailable(this)
+        AppCompatDelegate.setDefaultNightMode(PrefManager.darkTheme)
+        //DynamicColors.applyToActivitiesIfAvailable(this)
     }
 
     companion object {
