@@ -8,11 +8,11 @@ import android.text.Html
 import android.text.Spannable
 import android.text.SpannableStringBuilder
 import android.text.method.LinkMovementMethod
-import android.text.style.ImageSpan
 import android.text.style.URLSpan
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.FrameLayout
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.recyclerview.widget.GridLayoutManager
@@ -31,6 +31,7 @@ import com.example.c001apk.util.PubDateUtil
 import com.example.c001apk.view.CenteredImageSpan
 import com.example.c001apk.view.MyURLSpan
 import com.google.android.material.imageview.ShapeableImageView
+import com.google.android.material.progressindicator.CircularProgressIndicator
 import java.util.regex.Pattern
 
 class TopicContentAdapter(
@@ -38,6 +39,17 @@ class TopicContentAdapter(
     private val searchList: List<HomeFeedResponse.Data>
 ) :
     RecyclerView.Adapter<RecyclerView.ViewHolder>() {
+
+    private var loadState = 2
+    val LOADING = 1
+    val LOADING_COMPLETE = 2
+    val LOADING_END = 3
+
+    @SuppressLint("NotifyDataSetChanged")
+    fun setLoadState(loadState: Int) {
+        this.loadState = loadState
+        notifyDataSetChanged()
+    }
 
     class ViewHolder(view: View) : RecyclerView.ViewHolder(view) {
         val uname: TextView = view.findViewById(R.id.uname)
@@ -60,8 +72,14 @@ class TopicContentAdapter(
         var aliasTitle = ""
     }
 
+    class FootViewHolder(view: View) : RecyclerView.ViewHolder(view) {
+        val footerLayout: FrameLayout = view.findViewById(R.id.footerLayout)
+        val indicator: CircularProgressIndicator = view.findViewById(R.id.indicator)
+        val noMore: TextView = view.findViewById(R.id.noMore)
+    }
+
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
-        when (viewType) {
+        return when (viewType) {
             0 -> {
                 val view =
                     LayoutInflater.from(parent.context)
@@ -103,10 +121,10 @@ class TopicContentAdapter(
                     intent.putExtra("id", viewHolder.uname.text)
                     parent.context.startActivity(intent)
                 }
-                return viewHolder
+                viewHolder
             }
 
-            else -> {
+            1 -> {
                 val view =
                     LayoutInflater.from(parent.context)
                         .inflate(R.layout.item_search_topic, parent, false)
@@ -121,24 +139,62 @@ class TopicContentAdapter(
                     )
                     parent.context.startActivity(intent)
                 }
-                return viewHolder
+                viewHolder
             }
+
+            else -> {
+                val view = LayoutInflater.from(parent.context)
+                    .inflate(R.layout.item_rv_footer, parent, false)
+                FootViewHolder(view)
+            }
+
+
         }
 
     }
 
-    override fun getItemCount() = searchList.size
+    override fun getItemCount() = searchList.size + 1
 
     override fun getItemViewType(position: Int): Int {
-        return when (searchList[position].entityType) {
+        return if (position == itemCount - 1) -1
+        else when (searchList[position].entityType) {
             "feed" -> 0
-            else -> 1
+            else -> 1 //"product"
         }
     }
 
     @SuppressLint("UseCompatLoadingForDrawables", "SetTextI18n")
     override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
         when (holder) {
+
+            is FootViewHolder -> {
+                when (loadState) {
+                    LOADING -> {
+                        holder.footerLayout.visibility = View.VISIBLE
+                        holder.indicator.visibility = View.VISIBLE
+                        holder.indicator.isIndeterminate = true
+                        holder.noMore.visibility = View.GONE
+
+                    }
+
+                    LOADING_COMPLETE -> {
+                        holder.footerLayout.visibility = View.GONE
+                        holder.indicator.visibility = View.GONE
+                        holder.indicator.isIndeterminate = false
+                        holder.noMore.visibility = View.GONE
+                    }
+
+                    LOADING_END -> {
+                        holder.footerLayout.visibility = View.VISIBLE
+                        holder.indicator.visibility = View.GONE
+                        holder.indicator.isIndeterminate = false
+                        holder.noMore.visibility = View.VISIBLE
+                    }
+
+                    else -> {}
+                }
+            }
+
             is ViewHolder -> {
                 val feed = searchList[position]
                 holder.id = feed.id
@@ -190,7 +246,7 @@ class TopicContentAdapter(
                 holder.message.movementMethod = LinkMovementMethod.getInstance()
                 while (matcher.find()) {
                     val group = matcher.group()
-                    if (EmojiUtil.getEmoji(group) != -1){
+                    if (EmojiUtil.getEmoji(group) != -1) {
                         val emoji: Drawable =
                             mContext.getDrawable(EmojiUtil.getEmoji(group))!!
                         emoji.setBounds(
@@ -250,10 +306,10 @@ class TopicContentAdapter(
             is TopicViewHolder -> {
                 val topic = searchList[position]
                 holder.title.text = topic.title
-                holder.hotNum.text = CountUtil.view(topic.hotNum) + "热度"
+                holder.hotNum.text = topic.hotNumTxt + "热度"
                 holder.commentNum.text =
-                    if (topic.entityType == "topic") CountUtil.view(topic.commentnum) + "讨论"
-                    else CountUtil.view(topic.feedCommentNum) + "讨论"
+                    if (topic.entityType == "topic") topic.commentnumTxt + "讨论"
+                    else topic.feedCommentNumTxt + "讨论"
                 ImageShowUtil.showIMG(holder.logo, topic.logo)
                 if (topic.entityType == "product")
                     holder.aliasTitle = topic.aliasTitle
